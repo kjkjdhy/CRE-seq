@@ -19,7 +19,7 @@ def motif_penalty(m: Dict[str,np.ndarray], target_min_pos=1.0, target_max_neg=0.
 from typing import Tuple
 
 def _find_sites(seq: str, kmer: str, strand: str = "+") -> list[int]:
-    # 简化：只扫正义链；想要双链就把 seq 的RC也扫一次
+    # Simplified: only scan forward strand; for both strands, scan the RC of seq as well
     k = len(kmer)
     hits = []
     for i in range(len(seq)-k+1):
@@ -35,7 +35,7 @@ def pair_spacing_penalty(
     require_order: bool = False,   # True: A在左B在右；False: 无序
     require_same_strand: bool = False,  # 先留空位，后续接双链/方向
 ) -> np.ndarray:
-    """对每条序列，若(A,B)不存在“合法间距与顺序”的一对，就罚1，否则罚0。"""
+    """For each sequence, if (A,B) does not have a pair with "valid spacing and order", penalize 1, otherwise 0."""
     A, B = pair
     n = len(seqs)
     pen = np.ones(n, dtype=np.float32)
@@ -51,7 +51,7 @@ def pair_spacing_penalty(
                         ok = True; break
                 if ok: break
         else:
-            # 无序：只看距离落窗即可
+            # Unordered: just check if distance falls within window
             for a in As:
                 for b in Bs:
                     d = abs(b - a)
@@ -60,3 +60,6 @@ def pair_spacing_penalty(
                 if ok: break
         pen[i] = 0.0 if ok else 1.0
     return pen
+
+
+

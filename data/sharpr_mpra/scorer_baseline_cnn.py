@@ -1,9 +1,9 @@
 """
 Scorer v2 (overwrite baseline):
-- 保留所有样本（包括 activity=0）
-- DataLoader 用 WeightedRandomSampler：降低零样本采样率、提高非零样本采样率
-- 数据增强：以 p=0.5 做 reverse-complement
-- 模型：两层小卷积 + GELU + Dropout（更稳）
+- Keep all samples (including activity=0)
+- DataLoader uses WeightedRandomSampler: reduce zero-sample sampling rate, increase non-zero sample sampling rate
+- Data augmentation: do reverse-complement with p=0.5
+- Model: two small conv layers + GELU + Dropout (more stable)
 """
 
 import os, random, math
@@ -23,7 +23,7 @@ print(f"Total samples (keep zeros): {len(df)}")
 # one-hot + reverse-complement
 base2idx = {'A':0, 'C':1, 'G':2, 'T':3}
 comp = str.maketrans({'A':'T','T':'A','C':'G','G':'C'})
-def rc(seq):  # 反向互补
+def rc(seq):  # reverse complement
     return seq.upper().translate(comp)[::-1]
 
 def onehot(seq):
@@ -50,15 +50,15 @@ class SeqDataset(Dataset):
 # split
 tr_df, va_df = train_test_split(df, test_size=0.1, random_state=1)
 
-# -------- 核心：加权采样 --------
+# -------- Core: weighted sampling --------
 act = tr_df['activity'].values
 is_zero = np.isclose(act, 0.0, atol=1e-9)
 
-w0 = 0.1     # 零样本的基础权重（越小→越少被采到，但仍保留）
-w1 = 1.0     # 非零样本基础权重
-scale = 1.0  # 非零样本权重随 |activity| 的放大系数（log1p 平滑）
+w0 = 0.1     # Base weight for zero samples (smaller → less likely to be sampled, but still retained)
+w1 = 1.0     # Base weight for non-zero samples
+scale = 1.0  # Scaling coefficient for non-zero sample weights by |activity| (log1p smoothing)
 weights = np.where(is_zero, w0, w1 * (np.log1p(np.abs(act)) * scale + 1.0))
-weights = weights * (len(weights) / weights.sum())  # 归一化，数值稳定
+weights = weights * (len(weights) / weights.sum())  # Normalize for numerical stability
 
 sampler = WeightedRandomSampler(
     weights=torch.tensor(weights, dtype=torch.double),

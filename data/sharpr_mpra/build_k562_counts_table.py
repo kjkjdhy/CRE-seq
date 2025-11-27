@@ -1,10 +1,10 @@
 """
-目标：
-  1) 扫描当前目录下所有 K562 的 *.counts.txt 文件（mRNA/Plasmid、各个replicate）
-  2) 读取三列：ID、Sequence、Counts
-  3) 把 'Counts' 这一列里逗号分隔的条形码计数求和 => total_counts
-  4) 汇总成一个“宽表”：每行是一条序列，每列是一个文件（一个replicate），单元格是该序列在该库的总计数
-  5) 保存为 k562_counts_wide.csv，后续我们再从中计算 activity（例如 RNA / Plasmid 归一化、取 log2 等）
+Goal:
+  1) Scan all K562 *.counts.txt files in the current directory (mRNA/Plasmid, each replicate)
+  2) Read three columns: ID, Sequence, Counts
+  3) Sum the comma-separated barcode counts in the 'Counts' column => total_counts
+  4) Aggregate into a "wide table": each row is a sequence, each column is a file (one replicate), cells are the total counts for that sequence in that library
+  5) Save as k562_counts_wide.csv, then we'll calculate activity from it (e.g., RNA / Plasmid normalization, log2, etc.)
 """
 
 import os, re, pandas as pd
@@ -13,9 +13,9 @@ DATA_DIR = os.path.expanduser('~/CRE-seq/data/sharpr_mpra')
 
 def list_count_files():
     """
-    同时收集：
-      - 含 K562 的 *.counts.txt（mRNA 计数）
-      - 含 Plasmid 的 *.counts.txt（质粒对照），即使文件名里不含 K562
+    Collect simultaneously:
+      - *.counts.txt containing K562 (mRNA counts)
+      - *.counts.txt containing Plasmid (plasmid controls), even if filename doesn't contain K562
     """
     files = []
     for fn in os.listdir(DATA_DIR):
@@ -28,16 +28,16 @@ def list_count_files():
 
 def short_name(path):
     """
-    压缩成好读的列名；确保能看出是 mRNA 还是 Plasmid、哪个设计/rep。
-    例：
+    Compress into readable column names; ensure you can see whether it's mRNA or Plasmid, which design/rep.
+    Examples:
       GSM1831779_K562_PilotDesign_SV40P_mRNA_Rep1.counts.txt -> K562_PilotDesign_SV40P_mRNA_Rep1
       GSM1831773_ScaleUpDesign1_minP_Plasmid.counts.txt      -> ScaleUpDesign1_minP_Plasmid
     """
     base = os.path.basename(path).replace('.counts.txt', '')
-    base = re.sub(r'^GSM\d+_', '', base)  # 去掉 GSM 编号
+    base = re.sub(r'^GSM\d+_', '', base)  # Remove GSM number
     parts = [p for p in base.split('_') if p]
 
-    # 只保留关键信息的顺序
+    # Keep only key information in order
     keep_order = []
     keys = ['K562','PilotDesign','ScaleUpDesign1','ScaleUpDesign2','SV40P','minP','mRNA','Plasmid','Rep1','Rep2','Rep3']
     for k in keys:
@@ -46,9 +46,9 @@ def short_name(path):
                 keep_order.append(k)
                 break
 
-    # 如果既没有 K562 也没有细胞名，就保持原样的前两个词，避免信息丢失
+    # If there's neither K562 nor cell name, keep the first two words as-is to avoid information loss
     if not any(k in keep_order for k in ['K562']):
-        # 例如纯 Plasmid 文件：用设计名+启动子名做前缀
+        # For example, pure Plasmid files: use design name + promoter name as prefix
         prefix = []
         for p in parts:
             if p not in ['mRNA','Plasmid','Rep1','Rep2','Rep3']:
@@ -57,7 +57,7 @@ def short_name(path):
                 break
         keep_order = prefix + [x for x in keep_order if x not in prefix]
 
-    name = '_'.join(dict.fromkeys(keep_order))  # 去重保持顺序
+    name = '_'.join(dict.fromkeys(keep_order))  # Deduplicate while maintaining order
     return name if name else base
 
 
@@ -65,8 +65,8 @@ def short_name(path):
 
 def sum_counts_str(s):
     """
-    把 '154,3,188,...' 这类字符串转成整数列表并求和。
-    空字符串或异常返回 0。
+    Convert strings like '154,3,188,...' to integer list and sum.
+    Return 0 for empty strings or exceptions.
     """
     if not isinstance(s, str) or s.strip() == '':
         return 0
@@ -76,10 +76,10 @@ def sum_counts_str(s):
         return 0
 
 def load_one(path):
-    """读取一个 counts 文件，只取需要的列，并计算 total_counts"""
-    # 大多数是制表符分隔
+    """Read a counts file, take only needed columns, and calculate total_counts"""
+    # Most are tab-separated
     df = pd.read_csv(path, sep='\t', comment='#')
-    # 兼容不同大小写的列名
+    # Compatible with different case column names
     cols = {c.lower(): c for c in df.columns}
     id_col = cols.get('id', 'ID')
     seq_col = cols.get('sequence', 'Sequence')
@@ -90,15 +90,15 @@ def load_one(path):
     return df[['ID','Sequence','file','total_counts']]
 
 def build_wide_table(paths):
-    """把多个文件拼起来，透视成宽表"""
+    """Combine multiple files and pivot into wide table"""
     frames = [load_one(p) for p in paths]
     tall = pd.concat(frames, ignore_index=True)
-    # 行去重（有些文件可能同一 ID 出现一次以上，取和）
+    # Deduplicate rows (some files may have the same ID appear multiple times, sum them)
     tall = tall.groupby(['ID','Sequence','file'], as_index=False)['total_counts'].sum()
-    # 透视：index=ID+Sequence，columns=file，values=total_counts
+    # Pivot: index=ID+Sequence, columns=file, values=total_counts
     wide = tall.pivot_table(index=['ID','Sequence'], columns='file', values='total_counts', fill_value=0, aggfunc='sum')
     wide = wide.reset_index()
-    # 列名整理：去掉列索引名字
+    # Clean up column names: remove column index name
     wide.columns.name = None
     return wide
 
