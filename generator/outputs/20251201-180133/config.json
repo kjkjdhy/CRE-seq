@@ -1,0 +1,14 @@
+{
+  "pop": 96,
+  "length": 200,
+  "gens": 80,
+  "mut_p": 0.01,
+  "cx_rate": 0.5,
+  "seed": 4,
+  "lambda_motif": 0.3,
+  "lambda_shape": 0.2,
+  "lambda_syntax": 1.0,
+  "deepstarr": "",
+  "outdir": "generator/outputs",
+  "save_per_gen": false
+}
