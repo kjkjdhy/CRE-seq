@@ -1,27 +1,9 @@
 import numpy as np
+from creseq.motif import motif_penalty
+from creseq.syntax import syntax_penalty
 
-
-def compute_fitness(
-    seqs,
-    scorer,
-    motif_pen,
-    shape_pen,
-    lambda_motif: float = 0.5,
-    lambda_shape: float = 0.5,
-) -> np.ndarray:
-    """
-    Compute final fitness for a batch of sequences.
-
-    Base score comes from the external scorer (e.g. PARM / DeepSTARR).
-    We subtract:
-      - lambda_motif * motif_pen
-      - lambda_shape * shape_pen
-    so that larger penalties reduce the fitness.
-    """
-    # Base scores from ML model
-    s = scorer.score_batch(seqs).astype(np.float32)
-
-    # Subtract motif and DNAshape penalties
-    s = s - lambda_motif * motif_pen - lambda_shape * shape_pen
-
-    return s
+def compute_fitness(seqs, scorer, lambda_motif=1.0, lambda_syntax=1.0):
+    scores = scorer.score_batch(seqs).astype(np.float32)
+    pen_motif = motif_penalty(seqs)
+    pen_syntax = syntax_penalty(seqs)
+    return scores - lambda_motif * pen_motif - lambda_syntax * pen_syntax

@@ -32,21 +32,18 @@ HEADER_RE = re.compile(r"fitness=([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)")
 def run_ga_once(seed: int, existing_dirs: set[str]) -> pathlib.Path:
     
     cmd = [
-        "python",
-        "scripts/run_ga.py",
-        "--gens",
-        str(GENS),
-        "--pop",
-        str(POP),
-        "--lambda_motif",
-        str(LAMBDA_MOTIF),
-        "--lambda_shape",
-        str(LAMBDA_SHAPE),
-        "--lambda_syntax",
-        str(LAMBDA_SYNTAX),
-        "--seed",
-        str(seed),
-    ]
+    "python",
+    "scripts/run_ga.py",
+    "--outdir",
+    str(OUT_BASE / f"seed_{seed:03d}"),
+    "--n_gen",
+    str(GENS),
+    "--pop_size",
+    str(POP),
+    "--seed",
+    str(seed),
+]
+
     print(f"\n=== Running GA with seed={seed} ===")
     subprocess.run(cmd, check=True)
 

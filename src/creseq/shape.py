@@ -1,222 +1,161 @@
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Optional, Union
 
-# ---------------------------------------------------------------------
-# Simple, self-contained DNAshape surrogate (Option B)
-# ---------------------------------------------------------------------
-# This module does NOT depend on DNAshapeR or any external R package.
-# Instead, it produces useful "shape-like" structural proxies from raw DNA
-# sequences, using stable rule-based heuristics:
-#
-#   1) MGW surrogate:
-#        - computed from local GC fraction in sliding windows
-#        - preferred when GC/AT balance is moderate (GC fraction ~0.5)
-#
-#   2) Roll surrogate:
-#        - derived from dinucleotide-dependent bending tendencies
-#        - mapped to [0,1] and converted to base-level Roll profile
-#
-#   3) Homopolymer detection:
-#        - penalizes long AAAAAA / TTTTTT / CCCCC sequences
-#
-# The returned values are lightweight summaries:
-#       mgw_mean : float per sequence
-#       roll_var : float per sequence
-#       homorun  : float per sequence
-#
-# These are sufficient for downstream fitness functions and fully compatible
-# with your existing GA pipeline.
-# ---------------------------------------------------------------------
-
-# Dinucleotide-level inherent Roll angles (approximate). Only the RELATIVE
-# differences matter because values are normalized afterward.
-_ROLL_DEG = {
-    "AA": 0.6, "TT": 0.6,
-    "AT": -1.2,
-    "TA": 3.0,
-    "CA": 1.7, "TG": 1.7,
-    "GT": 0.6, "AC": 0.6,
-    "CT": 1.1, "AG": 1.1,
-    "GA": -0.6, "TC": -0.6,
-    "CG": 0.6,
-    "GC": -1.5,
-    "GG": 0.6, "CC": 0.6,
-}
-
-_DINUC_MIN = min(_ROLL_DEG.values())
-_DINUC_MAX = max(_ROLL_DEG.values())
-_DINUC_SPAN = float(_DINUC_MAX - _DINUC_MIN) if _DINUC_MAX != _DINUC_MIN else 1.0
-
-
-def _sliding_gc_fraction(s: str, w: int = 5) -> np.ndarray:
-    """
-    Compute GC fraction in sliding windows of size w.
-
-    Returns
-    -------
-    np.ndarray of shape (len(s) - w + 1,)
-        GC fraction for each window. If the sequence is shorter than w,
-        a single averaged GC fraction is returned.
-    """
-    L = len(s)
-    arr = np.fromiter((1 if c in "GC" else 0 for c in s), dtype=np.float32)
-
-    if L < w:
-        return np.array([arr.mean()], dtype=np.float32)
-
-    kernel = np.ones(w, dtype=np.float32)
-    return np.convolve(arr, kernel, mode="valid") / float(w)
-
-
-def _max_homopolymer_run(s: str) -> float:
-    """
-    Compute the longest homopolymer run length (e.g. 'AAAAA' → 5).
-    """
+def _longest_homopolymer_run(s: str) -> int:
     if not s:
-        return 0.0
-
-    longest = 1
-    current = 1
-
-    for i in range(1, len(s)):
-        if s[i] == s[i - 1]:
-            current += 1
-            longest = max(longest, current)
+        return 0
+    best = 1
+    cur = 1
+    prev = s[0]
+    for ch in s[1:]:
+        if ch == prev:
+            cur += 1
         else:
-            current = 1
-
-    return float(longest)
-
-
-def _roll_profile(s: str) -> np.ndarray:
-    """
-    Convert a DNA sequence into a base-level Roll profile in the range [0,1].
-
-    Steps
-    -----
-    1) Assign a Roll magnitude to each dinucleotide (length L-1)
-    2) Normalize all step-level values to [0,1]
-    3) Convert step-level to base-level (length L)
-       - endpoints copy nearest step
-       - interior bases use average of adjacent steps
-    """
-    L = len(s)
-    if L <= 1:
-        return np.zeros(L, dtype=np.float32)
-
-    # Step-level roll values
-    step_vals = np.empty(L - 1, dtype=np.float32)
-    for i in range(L - 1):
-        dinuc = s[i : i + 2]
-        step_vals[i] = _ROLL_DEG.get(dinuc, 0.0)
-
-    # Normalize to [0,1]
-    norm = (step_vals - _DINUC_MIN) / _DINUC_SPAN
-    norm = np.clip(norm, 0.0, 1.0)
-
-    # Convert to base-level profile
-    base_roll = np.empty(L, dtype=np.float32)
-    base_roll[0] = norm[0]
-    base_roll[-1] = norm[-1]
-    if L > 2:
-        base_roll[1:-1] = 0.5 * (norm[:-1] + norm[1:])
-
-    return base_roll
-
+            if cur > best:
+                best = cur
+            cur = 1
+            prev = ch
+    if cur > best:
+        best = cur
+    return best
 
 def compute_dnashape(seqs: List[str]) -> Dict[str, np.ndarray]:
-    """
-    Compute shape-like structural summaries for a batch of sequences.
-
-    Parameters
-    ----------
-    seqs : List[str]
-        All sequences must have identical length and contain only A/C/G/T.
-
-    Returns
-    -------
-    dict with keys "mgw_mean", "roll_var", "homorun" (each np.ndarray)
-        mgw_mean : mean GC-balance-based MGW surrogate, ∈ [0,1]
-        roll_var : variance of normalized Roll profile, small values preferred
-        homorun  : length of longest homopolymer run
-    """
     n = len(seqs)
-    if n == 0:
-        return {
-            "mgw_mean": np.zeros(0, dtype=np.float32),
-            "roll_var": np.zeros(0, dtype=np.float32),
-            "homorun": np.zeros(0, dtype=np.float32),
-        }
+    L = len(seqs[0]) if n > 0 else 0
 
-    L = len(seqs[0])
-    mgw_mean = np.zeros(n, dtype=np.float32)
-    roll_var = np.zeros(n, dtype=np.float32)
-    homorun = np.zeros(n, dtype=np.float32)
+    mgw = np.zeros((n, L), dtype=np.float32)
+    roll = np.zeros((n, L), dtype=np.float32)
+    helt = np.zeros((n, L), dtype=np.float32)
+    prot = np.zeros((n, L), dtype=np.float32)
+    homorun = np.zeros((n,), dtype=np.float32)
 
     for i, s in enumerate(seqs):
         s = s.upper()
-        assert len(s) == L, "All sequences must have the same length"
+        homorun[i] = float(_longest_homopolymer_run(s))
 
-        # MGW surrogate based on local GC balance
-        gc_local = _sliding_gc_fraction(s, w=5)
-        # Ideal GC fraction ~0.5 → score=1; deviation reduces the score.
-        mgw_local = 1.0 - np.abs(gc_local - 0.5) * 2.0
-        mgw_local = np.clip(mgw_local, 0.0, 1.0)
-        mgw_mean[i] = float(mgw_local.mean())
+        gc_mask = np.fromiter(((c == "G") or (c == "C") for c in s), count=L, dtype=np.int8).astype(np.float32)
+        if L >= 5:
+            win = 5
+            pad = win // 2
+            x = np.pad(gc_mask, (pad, pad), mode="edge")
+            k = np.ones((win,), dtype=np.float32) / float(win)
+            mgw_i = np.convolve(x, k, mode="valid")
+        else:
+            mgw_i = gc_mask
+        mgw[i, :] = mgw_i[:L]
 
-        # Roll profile variance
-        roll = _roll_profile(s)
-        roll_var[i] = float(roll.var())
+        r = np.zeros((L,), dtype=np.float32)
+        h = np.zeros((L,), dtype=np.float32)
+        p = np.zeros((L,), dtype=np.float32)
 
-        # Longest homopolymer run
-        homorun[i] = _max_homopolymer_run(s)
+        for j in range(L - 1):
+            a = s[j]
+            b = s[j + 1]
+
+            if (a == "A" and b == "T") or (a == "T" and b == "A"):
+                r[j] = -0.20
+            elif (a == "C" and b == "G") or (a == "G" and b == "C"):
+                r[j] = 0.20
+            else:
+                r[j] = 0.0
+
+            if (a == "A" and b == "A") or (a == "T" and b == "T"):
+                h[j] = 0.15
+            elif (a == "G" and b == "G") or (a == "C" and b == "C"):
+                h[j] = -0.15
+            else:
+                h[j] = 0.0
+
+            if a in ("A", "T") and b in ("A", "T"):
+                p[j] = 0.10
+            elif a in ("G", "C") and b in ("G", "C"):
+                p[j] = -0.10
+            else:
+                p[j] = 0.0
+
+        r[L - 1] = r[L - 2] if L >= 2 else 0.0
+        h[L - 1] = h[L - 2] if L >= 2 else 0.0
+        p[L - 1] = p[L - 2] if L >= 2 else 0.0
+
+        roll[i, :] = r
+        helt[i, :] = h
+        prot[i, :] = p
 
     return {
-        "mgw_mean": mgw_mean,
-        "roll_var": roll_var,
+        "MGW": mgw,
+        "Roll": roll,
+        "HelT": helt,
+        "ProT": prot,
         "homorun": homorun,
     }
 
+def _region(x: np.ndarray, center: int, left: int, right: int) -> np.ndarray:
+    L = x.shape[1]
+    a = max(0, center - left)
+    b = min(L, center + right)
+    if b <= a:
+        return x[:, :0]
+    return x[:, a:b]
 
 def shape_penalty(
-    shape: Dict[str, np.ndarray],
-    mgw_target: float = 1.0,
-    roll_var_max: float = 0.02,
+    seqs_or_shape: Union[List[str], Dict[str, np.ndarray]],
+    shapes: Optional[Dict[str, np.ndarray]] = None,
+    tss_index: Optional[int] = None,
+    mgw_target: float = 0.55,
+    mgw_tol: float = 0.08,
+    roll_mean_target: float = 0.0,
+    roll_mean_tol: float = 0.06,
+    helt_mean_target: float = 0.0,
+    helt_mean_tol: float = 0.06,
+    prot_mean_target: float = 0.0,
+    prot_mean_tol: float = 0.06,
     homorun_max: float = 6.0,
+    window_left: int = 40,
+    window_right: int = 40,
 ) -> np.ndarray:
-    """
-    Convert DNAshape structural summaries into a per-sequence penalty.
+    if isinstance(seqs_or_shape, dict):
+        shp = seqs_or_shape
+        n = int(shp["MGW"].shape[0])
+        L = int(shp["MGW"].shape[1])
+    else:
+        seqs = seqs_or_shape
+        shp = shapes if shapes is not None else compute_dnashape(seqs)
+        n = len(seqs)
+        L = int(shp["MGW"].shape[1])
 
-    Parameters
-    ----------
-    shape : dict
-        Must contain the keys "mgw_mean", "roll_var", "homorun".
-    mgw_target : float
-        Target MGW score; lower MGW gets penalized.
-    roll_var_max : float
-        Maximum allowed variance of Roll; higher variance is penalized.
-    homorun_max : float
-        Maximum allowed homopolymer run length.
+    if tss_index is None:
+        tss = L // 2
+    else:
+        tss = int(tss_index)
 
-    Returns
-    -------
-    np.ndarray of shape (n_seq,)
-        Larger values indicate worse structure (higher penalty).
-    """
-    mgw = shape.get("mgw_mean")
-    rv = shape.get("roll_var")
-    hr = shape.get("homorun")
+    mgw = shp["MGW"]
+    roll = shp["Roll"]
+    helt = shp["HelT"]
+    prot = shp["ProT"]
+    hr = shp.get("homorun", np.zeros((n,), dtype=np.float32)).astype(np.float32)
 
-    if mgw is None or rv is None or hr is None:
-        raise ValueError("shape_penalty expects keys 'mgw_mean', 'roll_var', 'homorun'")
+    mgw_w = _region(mgw, tss, window_left, window_right)
+    roll_w = _region(roll, tss, window_left, window_right)
+    helt_w = _region(helt, tss, window_left, window_right)
+    prot_w = _region(prot, tss, window_left, window_right)
 
-    # MGW penalty: only penalize if below target
-    p_mgw = np.maximum(0.0, mgw_target - mgw)
+    def mean_or_zero(a: np.ndarray) -> np.ndarray:
+        if a.shape[1] == 0:
+            return np.zeros((n,), dtype=np.float32)
+        return a.mean(axis=1).astype(np.float32)
 
-    # Roll variance penalty: only penalize when above threshold
-    p_roll = np.maximum(0.0, rv - roll_var_max)
+    mgw_mean = mean_or_zero(mgw_w)
+    roll_mean = mean_or_zero(roll_w)
+    helt_mean = mean_or_zero(helt_w)
+    prot_mean = mean_or_zero(prot_w)
 
-    # Homopolymer penalty
-    p_homo = np.maximum(0.0, hr - homorun_max)
+    pen = np.zeros((n,), dtype=np.float32)
 
-    return (p_mgw + p_roll + p_homo).astype(np.float32)
+    pen += np.maximum(0.0, np.abs(mgw_mean - float(mgw_target)) - float(mgw_tol))
+    pen += np.maximum(0.0, np.abs(roll_mean - float(roll_mean_target)) - float(roll_mean_tol))
+    pen += np.maximum(0.0, np.abs(helt_mean - float(helt_mean_target)) - float(helt_mean_tol))
+    pen += np.maximum(0.0, np.abs(prot_mean - float(prot_mean_target)) - float(prot_mean_tol))
+
+    pen += np.maximum(0.0, hr - float(homorun_max)) / float(max(homorun_max, 1.0))
+
+    return pen.astype(np.float32)
