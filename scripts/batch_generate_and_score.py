@@ -6,7 +6,7 @@ import subprocess
 
 import numpy as np
 import pandas as pd
-
+import os
 from creseq.score_adapter import ParmScorer
 
 
@@ -20,7 +20,7 @@ LAMBDA_SHAPE = 0.2
 LAMBDA_SYNTAX = 1.0
 
 
-PARM_MODEL_DIR = "/Users/heyangdong/software/PARM/pre_trained_models/K562/"
+PARM_MODEL_DIR = os.environ.get("PARM_MODEL_DIR")
 
 # =========================================================
 
