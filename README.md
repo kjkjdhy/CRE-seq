@@ -15,3 +15,27 @@ After downloading, set the environment variable pointing to the model directory,
 
 ```bash
 export PARM_MODEL_DIR=/path/to/PARM/pre_trained_models/K562
+
+## Reproducing the main CRE-seq experiment
+
+To reproduce the main CRE-seq optimization experiment (baseline vs. penalty-aware GA, scored with PARM K562), run:
+
+export PARM_MODEL_DIR=/path/to/PARM/pre_trained_models/K562/
+python scripts/run_experiment.py
+
+This command runs two genetic algorithm optimizations with identical settings, differing only in whether penalties are applied during fitness evaluation.
+
+Outputs are written to:
+
+results/main_experiment/
+├── baseline/
+│   ├── history.csv
+│   └── final_best.fa
+└── with_penalties/
+    ├── history.csv
+    └── final_best.fa
+
+File descriptions:
+
+- history.csv: Per-generation optimization statistics (e.g. best fitness over generations), used to compare convergence behavior between baseline and penalty-aware runs.
+- final_best.fa: FASTA file containing the highest-scoring sequence(s) obtained at the end of optimization, used for downstream sequence analysis.
