@@ -16,6 +16,8 @@ After downloading, set the environment variable pointing to the model directory,
 ```bash
 export PARM_MODEL_DIR=/path/to/PARM/pre_trained_models/K562
 
+
+
 ## Reproducing the main CRE-seq experiment
 
 To reproduce the main CRE-seq optimization experiment (baseline vs. penalty-aware GA, scored with PARM K562), run:
