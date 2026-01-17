@@ -15,7 +15,7 @@ After downloading, set the environment variable pointing to the model directory,
 
 ```bash
 export PARM_MODEL_DIR=/path/to/PARM/pre_trained_models/K562
-
+```
 
 
 ## Reproducing the main CRE-seq experiment
