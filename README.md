@@ -29,7 +29,7 @@ python scripts/run_experiment.py
 This command runs two genetic algorithm optimizations with identical settings, differing only in whether penalties are applied during fitness evaluation.
 
 Outputs are written to:
-
+```
 results/main_experiment/
 ├── baseline/
 │   ├── history.csv
@@ -37,7 +37,7 @@ results/main_experiment/
 └── with_penalties/
     ├── history.csv
     └── final_best.fa
-
+```
 File descriptions:
 
 - history.csv: Per-generation optimization statistics (e.g. best fitness over generations), used to compare convergence behavior between baseline and penalty-aware runs.
