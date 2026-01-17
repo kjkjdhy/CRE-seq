@@ -22,9 +22,10 @@ export PARM_MODEL_DIR=/path/to/PARM/pre_trained_models/K562
 
 To reproduce the main CRE-seq optimization experiment (baseline vs. penalty-aware GA, scored with PARM K562), run:
 
+```
 export PARM_MODEL_DIR=/path/to/PARM/pre_trained_models/K562/
 python scripts/run_experiment.py
-
+```
 This command runs two genetic algorithm optimizations with identical settings, differing only in whether penalties are applied during fitness evaluation.
 
 Outputs are written to:
