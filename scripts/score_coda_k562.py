@@ -1,10 +1,17 @@
+"""
+Utility script used to score CODA sequences with PARM-K562
+for activity scale reference in the manuscript.
+Not part of the CRE-seq generation pipeline.
+"""
+
 # scripts/score_coda_k562.py
 from __future__ import annotations
 import pathlib
 
 import numpy as np
 import pandas as pd
-
+import os
+from pathlib import Path
 from creseq.score_adapter import ParmScorer
 
 
@@ -30,28 +37,37 @@ def main() -> None:
 
     print(f"Scoring {len(seqs)} sequences of length {Ls.pop()} with PARM (K562)...")
 
-    scorer = ParmScorer(
-        model_dir="/Users/heyangdong/software/PARM/pre_trained_models/K562/"
+    parm_model_dir = os.environ.get("PARM_MODEL_DIR", None)
+if parm_model_dir is None:
+    raise ValueError(
+        "PARM_MODEL_DIR not set. "
+        "Set environment variable PARM_MODEL_DIR to PARM model path."
     )
 
-    scores = scorer.score_batch(seqs)
-    scores = np.asarray(scores, dtype=np.float32)
+parm_model_dir = Path(parm_model_dir).expanduser().resolve()
+if not parm_model_dir.exists():
+    raise FileNotFoundError(f"PARM model dir not found: {parm_model_dir}")
 
-    if scores.shape[0] != len(seqs):
+scorer = ParmScorer(model_dir=str(parm_model_dir))
+
+
+scores = scorer.score_batch(seqs)
+scores = np.asarray(scores, dtype=np.float32)
+
+if scores.shape[0] != len(seqs):
         raise RuntimeError(
             f"Expected {len(seqs)} scores, got shape {scores.shape}"
         )
 
-    df["parm_k562_score"] = scores
+        df["parm_k562_score"] = scores
 
-    print(
+print(
         f"PARM K562 score: min={scores.min():.4f}, "
         f"median={np.median(scores):.4f}, max={scores.max():.4f}"
     )
 
-    df.to_csv(out_path, sep="\t", index=False)
-    print(f"Wrote scored CODA K562 sequences to: {out_path}")
-
+df.to_csv(out_path, sep="\t", index=False)
+print(f"Wrote scored CODA K562 sequences to: {out_path}")
 
 if __name__ == "__main__":
     main()
