@@ -51,7 +51,7 @@ Due to licensing constraints, pretrained PARM models are **not included** in thi
 
 Download PARM and pretrained models from:
 
-https://github.com/vansteenselab/PARM
+https://github.com/vansteensellab/PARM
 
 After downloading, locate the pretrained model directory, for example:
 
