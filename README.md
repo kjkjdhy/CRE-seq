@@ -24,7 +24,7 @@ CRE-seq is designed to be flexible. The weights of different constraints are con
 Overall, this project serves as a mechanistic and interpretable complement to purely data-driven CRE design approaches, and as a flexible framework for studying how promoter grammar influences sequence optimization.
 
 ## Results
-![ECDF](results/Figure.png)
+![ECDF](results/pen_on_test/Figure.png)
 
 
 ## Step-by-step reproduction guide
