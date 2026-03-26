@@ -24,7 +24,17 @@ CRE-seq is designed to be flexible. The weights of different constraints are con
 Overall, this project serves as a mechanistic and interpretable complement to purely data-driven CRE design approaches, and as a flexible framework for studying how promoter grammar influences sequence optimization.
 
 ## Results
+
+### Grammar-aware optimization significantly improves sequence quality
+
 ![ECDF](results/pen_on_test/Figure.png)
+
+We compare the distribution of predicted transcriptional activity (PARM score) between baseline and grammar-aware optimization.
+
+The results show a clear shift toward higher activity for grammar-aware sequences.  
+Notably, approximately **92% of baseline sequences fall below the median of grammar-aware sequences**, indicating a substantial improvement in sequence quality.
+
+Wilcoxon rank-sum test: p ≈ 1.1 × 10⁻¹³
 
 
 ## Step-by-step reproduction guide
