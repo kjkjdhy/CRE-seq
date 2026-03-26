@@ -22,6 +22,9 @@ The framework uses a genetic algorithm to iteratively optimize DNA sequences bas
 CRE-seq is designed to be flexible. The weights of different constraints are configurable: in `batch_generate_and_score`, `lambda_motif`, `lambda_syntax`, and `lambda_shape` control the strength of each penalty. Setting all of them to zero recovers a pure baseline that relies only on the activity predictor, allowing direct comparison between constrained and unconstrained optimization.
 
 Overall, this project serves as a mechanistic and interpretable complement to purely data-driven CRE design approaches, and as a flexible framework for studying how promoter grammar influences sequence optimization.
+## Results
+![ECDF](results/Figure.png)
+
 
 ## Step-by-step reproduction guide
 
