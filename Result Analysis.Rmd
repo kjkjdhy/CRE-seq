@@ -1,0 +1,282 @@
+---
+title: "Cre-seq score Distributions"
+output:
+  pdf_document: default
+  html_document: default
+date: "2026-01-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+setwd("/Users/heyangdong/CRE-seq")
+library(readr)
+baseline <- read_tsv("baseline with no penalty.tsv")
+with_penalty <- read_tsv("my_generator_batch_with_parm.tsv")
+CODA <- read_tsv("CODA_k562_with_parm.tsv")
+
+baseline_scores <- baseline$parm_k562_score
+with_penalty_scores <- with_penalty$parm_k562_score
+CODA_scores <- CODA$parm_k562_score
+```
+
+```{r}
+# ---- ECDF (CODA only) + thresholds (baseline/grammar) + annotations ----
+# Inputs (already exist in your environment):
+#   baseline_scores, with_penalty_scores, CODA_scores
+
+# 1) Basic summaries
+baseline_med <- median(baseline_scores, na.rm = TRUE)
+grammar_med  <- median(with_penalty_scores, na.rm = TRUE)
+
+# Fractions of CODA that reach/exceed each threshold (for Results text)
+frac_coda_ge_baseline <- mean(CODA_scores >= baseline_med, na.rm = TRUE)
+frac_coda_ge_grammar  <- mean(CODA_scores >= grammar_med,  na.rm = TRUE)
+
+# 2) Build ECDF for CODA (evaluation scale reference)
+coda_ecdf <- ecdf(CODA_scores)
+
+# 3) Plot range (extend right side a bit for readability)
+x_min <- min(c(CODA_scores, baseline_scores, with_penalty_scores), na.rm = TRUE)
+x_max <- max(c(CODA_scores, baseline_scores, with_penalty_scores), na.rm = TRUE)
+x_right <- x_max + 0.15 * (x_max - x_min)  # extend 15% of span
+
+# 4) Draw ECDF
+plot(coda_ecdf,
+     col  = "black",
+     lwd  = 2,
+     xlim = c(x_min, x_right),
+     xlab = "PARM-K562 score",
+     ylab = "Fraction \u2264 x",
+     main = "ECDF of predicted activity")
+
+# 5) Add vertical threshold lines (medians)
+abline(v = baseline_med, col = "blue", lty = 2, lwd = 3)
+abline(v = grammar_med,  col = "red",  lty = 2, lwd = 3)
+
+# 6) Add points at the ECDF value (near y=1) and label with exceedance fractions
+# ---- Annotated points (avoid label overlap) ----
+
+# True ECDF y-values
+y_base <- coda_ecdf(baseline_med)
+y_gram <- coda_ecdf(grammar_med)
+
+# Plot points at the true locations
+points(baseline_med, y_base,
+       pch = 16, col = "blue", cex = 1.4)
+
+points(grammar_med, y_gram,
+       pch = 16, col = "red", cex = 1.4)
+
+# Choose fixed y-positions for labels (spread out)
+label_y_base <- 0.92
+label_y_gram <- 0.88
+
+# Draw arrows from labels to points
+arrows(x0 = baseline_med, y0 = label_y_base,
+       x1 = baseline_med, y1 = y_base,
+       length = 0.08, angle = 20, col = "blue", lwd = 1.5)
+
+arrows(x0 = grammar_med, y0 = label_y_gram,
+       x1 = grammar_med, y1 = y_gram,
+       length = 0.08, angle = 20, col = "red", lwd = 1.5)
+
+# Text labels
+label_base <- sprintf("CODA ≥ baseline median: %.3g", frac_coda_ge_baseline)
+label_gram <- sprintf("CODA ≥ grammar median: %.3g",  frac_coda_ge_grammar)
+
+text(baseline_med, label_y_base,
+     labels = label_base, pos = 4, col = "blue", cex = 0.9)
+
+text(grammar_med, label_y_gram,
+     labels = label_gram, pos = 4, col = "red", cex = 0.9)
+
+
+# 7) Legend
+legend("bottomright",
+       legend = c("CODA ECDF", "Baseline median", "Grammar-aware median"),
+       col    = c("black", "blue", "red"),
+       lwd    = c(2, 3, 3),
+       lty    = c(1, 2, 2),
+       bty    = "n")
+
+# 8) Print fractions (so you can paste numbers into Results)
+cat(sprintf("Fraction of CODA scores >= baseline median: %.6f\n", frac_coda_ge_baseline))
+cat(sprintf("Fraction of CODA scores >= grammar median:  %.6f\n", frac_coda_ge_grammar))
+
+
+```
+```{r}
+summary_stats <- data.frame(
+  group = c("baseline", "with_penalty", "CODA"),
+  median = c(
+    median(baseline_scores),
+    median(with_penalty_scores),
+    median(CODA_scores)
+  ),
+  q75 = c(
+    quantile(baseline_scores, 0.75),
+    quantile(with_penalty_scores, 0.75),
+    quantile(CODA_scores, 0.75)
+  ),
+  max = c(
+    max(baseline_scores),
+    max(with_penalty_scores),
+    max(CODA_scores)
+  )
+)
+
+summary_stats
+
+
+```
+```{r}
+# Assume these already exist:
+# baseline_scores
+# with_penalty_scores
+
+# Compute ECDFs
+ecdf_baseline <- ecdf(baseline_scores)
+ecdf_grammar  <- ecdf(with_penalty_scores)
+
+# Set x-axis range
+x_max <- max(c(baseline_scores, with_penalty_scores))
+
+# Plot baseline ECDF
+plot(
+  ecdf_baseline,
+  xlim = c(0, x_max),
+  ylim = c(0, 1),
+  col = "blue",
+  lwd = 3,
+  main = "ECDF of predicted activity",
+  xlab = "PARM-K562 score",
+  ylab = "Fraction \u2264 x",
+  verticals = FALSE,
+  do.points = FALSE
+)
+
+# Add grammar-aware ECDF
+lines(
+  ecdf_grammar,
+  col = "red",
+  lwd = 3,
+  verticals = FALSE,
+  do.points = FALSE
+)
+
+# Add legend
+legend(
+  "bottomright",
+  legend = c("CRE-seq baseline", "CRE-seq + grammar"),
+  col = c("blue", "red"),
+  lwd = 3,
+  bty = "n"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+```
+```{r}
+ecdf_baseline <- ecdf(baseline_scores)
+grammar_median <- median(with_penalty_scores)
+frac_baseline_below <- mean(baseline_scores <= grammar_median)
+x_max <- max(c(baseline_scores, with_penalty_scores))
+
+plot(
+  ecdf_baseline,
+  xlim = c(0, x_max),
+  ylim = c(0, 1),
+  col = "black",
+  lwd = 3,
+  main = "Baseline ECDF relative to grammar-aware median",
+  xlab = "PARM-K562 score",
+  ylab = "Fraction \u2264 x",
+  verticals = FALSE,
+  do.points = FALSE
+)
+
+abline(
+  v = grammar_median,
+  col = "red",
+  lwd = 3,
+  lty = 2
+)
+
+text(
+  x = grammar_median + 0.15,
+  y = 0.92,
+  labels = paste0(
+    round(frac_baseline_below * 100),
+    "% of baseline\n\u2264 grammar-aware\nmedian"
+  ),
+  col = "red",
+  adj = c(0, 1),
+  cex = 1.2
+)
+
+legend(
+  "bottomright",
+  legend = c(
+    "CRE-seq baseline ECDF",
+    "Grammar-aware median"
+  ),
+  col = c("black", "red"),
+  lwd = c(3, 3),
+  lty = c(1, 2),
+  bty = "n"
+)
+
+
+
+
+
+
+
+```
+
+```{r}
+wilcox.test(with_penalty_scores, baseline_scores, alternative = "greater", exact = FALSE)$p.value
+
+
+
+```
+
+
+
+
+
+
+

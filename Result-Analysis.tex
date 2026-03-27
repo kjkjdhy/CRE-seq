@@ -1,0 +1,583 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Cre-seq score Distributions},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Cre-seq score Distributions}
+\author{}
+\date{\vspace{-2.5em}2026-01-10}
+
+\begin{document}
+\maketitle
+
+\subsection{R Markdown}\label{r-markdown}
+
+This is an R Markdown document. Markdown is a simple formatting syntax
+for authoring HTML, PDF, and MS Word documents. For more details on
+using R Markdown see \url{http://rmarkdown.rstudio.com}.
+
+When you click the \textbf{Knit} button a document will be generated
+that includes both content as well as the output of any embedded R code
+chunks within the document. You can embed an R code chunk like this:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(cars)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      speed           dist       
+##  Min.   : 4.0   Min.   :  2.00  
+##  1st Qu.:12.0   1st Qu.: 26.00  
+##  Median :15.0   Median : 36.00  
+##  Mean   :15.4   Mean   : 42.98  
+##  3rd Qu.:19.0   3rd Qu.: 56.00  
+##  Max.   :25.0   Max.   :120.00
+\end{verbatim}
+
+\subsection{Including Plots}\label{including-plots}
+
+You can also embed plots, for example:
+
+\pandocbounded{\includegraphics[keepaspectratio]{Result-Analysis_files/figure-latex/pressure-1.pdf}}
+
+Note that the \texttt{echo\ =\ FALSE} parameter was added to the code
+chunk to prevent printing of the R code that generated the plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{setwd}\NormalTok{(}\StringTok{"/Users/heyangdong/CRE{-}seq"}\NormalTok{)}
+\FunctionTok{library}\NormalTok{(readr)}
+\NormalTok{baseline }\OtherTok{\textless{}{-}} \FunctionTok{read\_tsv}\NormalTok{(}\StringTok{"baseline with no penalty.tsv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 50 Columns: 5
+## -- Column specification --------------------------------------------------------
+## Delimiter: "\t"
+## chr (2): run_id, sequence
+## dbl (3): seed, fitness_ga, parm_k562_score
+## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{with\_penalty }\OtherTok{\textless{}{-}} \FunctionTok{read\_tsv}\NormalTok{(}\StringTok{"my\_generator\_batch\_with\_parm.tsv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 50 Columns: 5
+## -- Column specification --------------------------------------------------------
+## Delimiter: "\t"
+## chr (2): run_id, sequence
+## dbl (3): seed, fitness_ga, parm_k562_score
+## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{CODA }\OtherTok{\textless{}{-}} \FunctionTok{read\_tsv}\NormalTok{(}\StringTok{"CODA\_k562\_with\_parm.tsv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 25000 Columns: 6
+## -- Column specification --------------------------------------------------------
+## Delimiter: "\t"
+## chr (3): sequence, origin, target_cell
+## dbl (3): K562_l2fc, K562_prediction, parm_k562_score
+## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{baseline\_scores }\OtherTok{\textless{}{-}}\NormalTok{ baseline}\SpecialCharTok{$}\NormalTok{parm\_k562\_score}
+\NormalTok{with\_penalty\_scores }\OtherTok{\textless{}{-}}\NormalTok{ with\_penalty}\SpecialCharTok{$}\NormalTok{parm\_k562\_score}
+\NormalTok{CODA\_scores }\OtherTok{\textless{}{-}}\NormalTok{ CODA}\SpecialCharTok{$}\NormalTok{parm\_k562\_score}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# {-}{-}{-}{-} ECDF (CODA only) + thresholds (baseline/grammar) + annotations {-}{-}{-}{-}}
+\CommentTok{\# Inputs (already exist in your environment):}
+\CommentTok{\#   baseline\_scores, with\_penalty\_scores, CODA\_scores}
+
+\CommentTok{\# 1) Basic summaries}
+\NormalTok{baseline\_med }\OtherTok{\textless{}{-}} \FunctionTok{median}\NormalTok{(baseline\_scores, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{grammar\_med  }\OtherTok{\textless{}{-}} \FunctionTok{median}\NormalTok{(with\_penalty\_scores, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+
+\CommentTok{\# Fractions of CODA that reach/exceed each threshold (for Results text)}
+\NormalTok{frac\_coda\_ge\_baseline }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(CODA\_scores }\SpecialCharTok{\textgreater{}=}\NormalTok{ baseline\_med, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{frac\_coda\_ge\_grammar  }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(CODA\_scores }\SpecialCharTok{\textgreater{}=}\NormalTok{ grammar\_med,  }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+
+\CommentTok{\# 2) Build ECDF for CODA (evaluation scale reference)}
+\NormalTok{coda\_ecdf }\OtherTok{\textless{}{-}} \FunctionTok{ecdf}\NormalTok{(CODA\_scores)}
+
+\CommentTok{\# 3) Plot range (extend right side a bit for readability)}
+\NormalTok{x\_min }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(}\FunctionTok{c}\NormalTok{(CODA\_scores, baseline\_scores, with\_penalty\_scores), }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{x\_max }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(}\FunctionTok{c}\NormalTok{(CODA\_scores, baseline\_scores, with\_penalty\_scores), }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{x\_right }\OtherTok{\textless{}{-}}\NormalTok{ x\_max }\SpecialCharTok{+} \FloatTok{0.15} \SpecialCharTok{*}\NormalTok{ (x\_max }\SpecialCharTok{{-}}\NormalTok{ x\_min)  }\CommentTok{\# extend 15\% of span}
+
+\CommentTok{\# 4) Draw ECDF}
+\FunctionTok{plot}\NormalTok{(coda\_ecdf,}
+     \AttributeTok{col  =} \StringTok{"black"}\NormalTok{,}
+     \AttributeTok{lwd  =} \DecValTok{2}\NormalTok{,}
+     \AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(x\_min, x\_right),}
+     \AttributeTok{xlab =} \StringTok{"PARM{-}K562 score"}\NormalTok{,}
+     \AttributeTok{ylab =} \StringTok{"Fraction \textbackslash{}u2264 x"}\NormalTok{,}
+     \AttributeTok{main =} \StringTok{"ECDF of predicted activity"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <e2>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <89>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <a4>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 5) Add vertical threshold lines (medians)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{v =}\NormalTok{ baseline\_med, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{3}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{v =}\NormalTok{ grammar\_med,  }\AttributeTok{col =} \StringTok{"red"}\NormalTok{,  }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{3}\NormalTok{)}
+
+\CommentTok{\# 6) Add points at the ECDF value (near y=1) and label with exceedance fractions}
+\CommentTok{\# {-}{-}{-}{-} Annotated points (avoid label overlap) {-}{-}{-}{-}}
+
+\CommentTok{\# True ECDF y{-}values}
+\NormalTok{y\_base }\OtherTok{\textless{}{-}} \FunctionTok{coda\_ecdf}\NormalTok{(baseline\_med)}
+\NormalTok{y\_gram }\OtherTok{\textless{}{-}} \FunctionTok{coda\_ecdf}\NormalTok{(grammar\_med)}
+
+\CommentTok{\# Plot points at the true locations}
+\FunctionTok{points}\NormalTok{(baseline\_med, y\_base,}
+       \AttributeTok{pch =} \DecValTok{16}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }\AttributeTok{cex =} \FloatTok{1.4}\NormalTok{)}
+
+\FunctionTok{points}\NormalTok{(grammar\_med, y\_gram,}
+       \AttributeTok{pch =} \DecValTok{16}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{cex =} \FloatTok{1.4}\NormalTok{)}
+
+\CommentTok{\# Choose fixed y{-}positions for labels (spread out)}
+\NormalTok{label\_y\_base }\OtherTok{\textless{}{-}} \FloatTok{0.92}
+\NormalTok{label\_y\_gram }\OtherTok{\textless{}{-}} \FloatTok{0.88}
+
+\CommentTok{\# Draw arrows from labels to points}
+\FunctionTok{arrows}\NormalTok{(}\AttributeTok{x0 =}\NormalTok{ baseline\_med, }\AttributeTok{y0 =}\NormalTok{ label\_y\_base,}
+       \AttributeTok{x1 =}\NormalTok{ baseline\_med, }\AttributeTok{y1 =}\NormalTok{ y\_base,}
+       \AttributeTok{length =} \FloatTok{0.08}\NormalTok{, }\AttributeTok{angle =} \DecValTok{20}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.5}\NormalTok{)}
+
+\FunctionTok{arrows}\NormalTok{(}\AttributeTok{x0 =}\NormalTok{ grammar\_med, }\AttributeTok{y0 =}\NormalTok{ label\_y\_gram,}
+       \AttributeTok{x1 =}\NormalTok{ grammar\_med, }\AttributeTok{y1 =}\NormalTok{ y\_gram,}
+       \AttributeTok{length =} \FloatTok{0.08}\NormalTok{, }\AttributeTok{angle =} \DecValTok{20}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.5}\NormalTok{)}
+
+\CommentTok{\# Text labels}
+\NormalTok{label\_base }\OtherTok{\textless{}{-}} \FunctionTok{sprintf}\NormalTok{(}\StringTok{"CODA ≥ baseline median: \%.3g"}\NormalTok{, frac\_coda\_ge\_baseline)}
+\NormalTok{label\_gram }\OtherTok{\textless{}{-}} \FunctionTok{sprintf}\NormalTok{(}\StringTok{"CODA ≥ grammar median: \%.3g"}\NormalTok{,  frac\_coda\_ge\_grammar)}
+
+\FunctionTok{text}\NormalTok{(baseline\_med, label\_y\_base,}
+     \AttributeTok{labels =}\NormalTok{ label\_base, }\AttributeTok{pos =} \DecValTok{4}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }\AttributeTok{cex =} \FloatTok{0.9}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in text.default(baseline_med, label_y_base, labels = label_base, :
+## conversion failure on 'CODA ≥ baseline median: 0' in 'mbcsToSbcs': dot
+## substituted for <e2>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in text.default(baseline_med, label_y_base, labels = label_base, :
+## conversion failure on 'CODA ≥ baseline median: 0' in 'mbcsToSbcs': dot
+## substituted for <89>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in text.default(baseline_med, label_y_base, labels = label_base, :
+## conversion failure on 'CODA ≥ baseline median: 0' in 'mbcsToSbcs': dot
+## substituted for <a5>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{text}\NormalTok{(grammar\_med, label\_y\_gram,}
+     \AttributeTok{labels =}\NormalTok{ label\_gram, }\AttributeTok{pos =} \DecValTok{4}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{cex =} \FloatTok{0.9}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in text.default(grammar_med, label_y_gram, labels = label_gram, :
+## conversion failure on 'CODA ≥ grammar median: 0' in 'mbcsToSbcs': dot
+## substituted for <e2>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in text.default(grammar_med, label_y_gram, labels = label_gram, :
+## conversion failure on 'CODA ≥ grammar median: 0' in 'mbcsToSbcs': dot
+## substituted for <89>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in text.default(grammar_med, label_y_gram, labels = label_gram, :
+## conversion failure on 'CODA ≥ grammar median: 0' in 'mbcsToSbcs': dot
+## substituted for <a5>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 7) Legend}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomright"}\NormalTok{,}
+       \AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"CODA ECDF"}\NormalTok{, }\StringTok{"Baseline median"}\NormalTok{, }\StringTok{"Grammar{-}aware median"}\NormalTok{),}
+       \AttributeTok{col    =} \FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{),}
+       \AttributeTok{lwd    =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{),}
+       \AttributeTok{lty    =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{),}
+       \AttributeTok{bty    =} \StringTok{"n"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Result-Analysis_files/figure-latex/unnamed-chunk-2-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 8) Print fractions (so you can paste numbers into Results)}
+\FunctionTok{cat}\NormalTok{(}\FunctionTok{sprintf}\NormalTok{(}\StringTok{"Fraction of CODA scores \textgreater{}= baseline median: \%.6f}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, frac\_coda\_ge\_baseline))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Fraction of CODA scores >= baseline median: 0.000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\FunctionTok{sprintf}\NormalTok{(}\StringTok{"Fraction of CODA scores \textgreater{}= grammar median:  \%.6f}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, frac\_coda\_ge\_grammar))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Fraction of CODA scores >= grammar median:  0.000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{summary\_stats }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{group =} \FunctionTok{c}\NormalTok{(}\StringTok{"baseline"}\NormalTok{, }\StringTok{"with\_penalty"}\NormalTok{, }\StringTok{"CODA"}\NormalTok{),}
+  \AttributeTok{median =} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{median}\NormalTok{(baseline\_scores),}
+    \FunctionTok{median}\NormalTok{(with\_penalty\_scores),}
+    \FunctionTok{median}\NormalTok{(CODA\_scores)}
+\NormalTok{  ),}
+  \AttributeTok{q75 =} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{quantile}\NormalTok{(baseline\_scores, }\FloatTok{0.75}\NormalTok{),}
+    \FunctionTok{quantile}\NormalTok{(with\_penalty\_scores, }\FloatTok{0.75}\NormalTok{),}
+    \FunctionTok{quantile}\NormalTok{(CODA\_scores, }\FloatTok{0.75}\NormalTok{)}
+\NormalTok{  ),}
+  \AttributeTok{max =} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{max}\NormalTok{(baseline\_scores),}
+    \FunctionTok{max}\NormalTok{(with\_penalty\_scores),}
+    \FunctionTok{max}\NormalTok{(CODA\_scores)}
+\NormalTok{  )}
+\NormalTok{)}
+
+\NormalTok{summary\_stats}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##          group    median       q75       max
+## 1     baseline  9.715782  9.964119 11.719431
+## 2 with_penalty 10.418544 11.305818 14.006933
+## 3         CODA  2.458277  2.904758  8.043413
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Assume these already exist:}
+\CommentTok{\# baseline\_scores}
+\CommentTok{\# with\_penalty\_scores}
+
+\CommentTok{\# Compute ECDFs}
+\NormalTok{ecdf\_baseline }\OtherTok{\textless{}{-}} \FunctionTok{ecdf}\NormalTok{(baseline\_scores)}
+\NormalTok{ecdf\_grammar  }\OtherTok{\textless{}{-}} \FunctionTok{ecdf}\NormalTok{(with\_penalty\_scores)}
+
+\CommentTok{\# Set x{-}axis range}
+\NormalTok{x\_max }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(}\FunctionTok{c}\NormalTok{(baseline\_scores, with\_penalty\_scores))}
+
+\CommentTok{\# Plot baseline ECDF}
+\FunctionTok{plot}\NormalTok{(}
+\NormalTok{  ecdf\_baseline,}
+  \AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, x\_max),}
+  \AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+  \AttributeTok{col =} \StringTok{"blue"}\NormalTok{,}
+  \AttributeTok{lwd =} \DecValTok{3}\NormalTok{,}
+  \AttributeTok{main =} \StringTok{"ECDF of predicted activity"}\NormalTok{,}
+  \AttributeTok{xlab =} \StringTok{"PARM{-}K562 score"}\NormalTok{,}
+  \AttributeTok{ylab =} \StringTok{"Fraction \textbackslash{}u2264 x"}\NormalTok{,}
+  \AttributeTok{verticals =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{do.points =} \ConstantTok{FALSE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <e2>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <89>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <a4>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Add grammar{-}aware ECDF}
+\FunctionTok{lines}\NormalTok{(}
+\NormalTok{  ecdf\_grammar,}
+  \AttributeTok{col =} \StringTok{"red"}\NormalTok{,}
+  \AttributeTok{lwd =} \DecValTok{3}\NormalTok{,}
+  \AttributeTok{verticals =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{do.points =} \ConstantTok{FALSE}
+\NormalTok{)}
+
+\CommentTok{\# Add legend}
+\FunctionTok{legend}\NormalTok{(}
+  \StringTok{"bottomright"}\NormalTok{,}
+  \AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"CRE{-}seq baseline"}\NormalTok{, }\StringTok{"CRE{-}seq + grammar"}\NormalTok{),}
+  \AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{),}
+  \AttributeTok{lwd =} \DecValTok{3}\NormalTok{,}
+  \AttributeTok{bty =} \StringTok{"n"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Result-Analysis_files/figure-latex/unnamed-chunk-4-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ecdf\_baseline }\OtherTok{\textless{}{-}} \FunctionTok{ecdf}\NormalTok{(baseline\_scores)}
+\NormalTok{grammar\_median }\OtherTok{\textless{}{-}} \FunctionTok{median}\NormalTok{(with\_penalty\_scores)}
+\NormalTok{frac\_baseline\_below }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(baseline\_scores }\SpecialCharTok{\textless{}=}\NormalTok{ grammar\_median)}
+\NormalTok{x\_max }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(}\FunctionTok{c}\NormalTok{(baseline\_scores, with\_penalty\_scores))}
+
+\FunctionTok{plot}\NormalTok{(}
+\NormalTok{  ecdf\_baseline,}
+  \AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, x\_max),}
+  \AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+  \AttributeTok{col =} \StringTok{"black"}\NormalTok{,}
+  \AttributeTok{lwd =} \DecValTok{3}\NormalTok{,}
+  \AttributeTok{main =} \StringTok{"Baseline ECDF relative to grammar{-}aware median"}\NormalTok{,}
+  \AttributeTok{xlab =} \StringTok{"PARM{-}K562 score"}\NormalTok{,}
+  \AttributeTok{ylab =} \StringTok{"Fraction \textbackslash{}u2264 x"}\NormalTok{,}
+  \AttributeTok{verticals =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{do.points =} \ConstantTok{FALSE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <e2>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <89>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in title(...): conversion failure on 'Fraction ≤ x' in 'mbcsToSbcs':
+## dot substituted for <a4>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{abline}\NormalTok{(}
+  \AttributeTok{v =}\NormalTok{ grammar\_median,}
+  \AttributeTok{col =} \StringTok{"red"}\NormalTok{,}
+  \AttributeTok{lwd =} \DecValTok{3}\NormalTok{,}
+  \AttributeTok{lty =} \DecValTok{2}
+\NormalTok{)}
+
+\FunctionTok{text}\NormalTok{(}
+  \AttributeTok{x =}\NormalTok{ grammar\_median }\SpecialCharTok{+} \FloatTok{0.15}\NormalTok{,}
+  \AttributeTok{y =} \FloatTok{0.92}\NormalTok{,}
+  \AttributeTok{labels =} \FunctionTok{paste0}\NormalTok{(}
+    \FunctionTok{round}\NormalTok{(frac\_baseline\_below }\SpecialCharTok{*} \DecValTok{100}\NormalTok{),}
+    \StringTok{"\% of baseline}\SpecialCharTok{\textbackslash{}n}\StringTok{\textbackslash{}u2264 grammar{-}aware}\SpecialCharTok{\textbackslash{}n}\StringTok{median"}
+\NormalTok{  ),}
+  \AttributeTok{col =} \StringTok{"red"}\NormalTok{,}
+  \AttributeTok{adj =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+  \AttributeTok{cex =} \FloatTok{1.2}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in text.default(x = grammar_median + 0.15, y = 0.92, labels =
+## paste0(round(frac_baseline_below * : conversion failure on '≤ grammar-aware' in
+## 'mbcsToSbcs': dot substituted for <e2>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in text.default(x = grammar_median + 0.15, y = 0.92, labels =
+## paste0(round(frac_baseline_below * : conversion failure on '≤ grammar-aware' in
+## 'mbcsToSbcs': dot substituted for <89>
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in text.default(x = grammar_median + 0.15, y = 0.92, labels =
+## paste0(round(frac_baseline_below * : conversion failure on '≤ grammar-aware' in
+## 'mbcsToSbcs': dot substituted for <a4>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{legend}\NormalTok{(}
+  \StringTok{"bottomright"}\NormalTok{,}
+  \AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}
+    \StringTok{"CRE{-}seq baseline ECDF"}\NormalTok{,}
+    \StringTok{"Grammar{-}aware median"}
+\NormalTok{  ),}
+  \AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"red"}\NormalTok{),}
+  \AttributeTok{lwd =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{lty =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{),}
+  \AttributeTok{bty =} \StringTok{"n"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Result-Analysis_files/figure-latex/unnamed-chunk-5-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{wilcox.test}\NormalTok{(with\_penalty\_scores, baseline\_scores, }\AttributeTok{alternative =} \StringTok{"greater"}\NormalTok{, }\AttributeTok{exact =} \ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{p.value}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1.137297e-13
+\end{verbatim}
+
+\end{document}

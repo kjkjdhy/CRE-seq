@@ -1,0 +1,9 @@
+seed=40
+length=200
+pop_size=96
+n_gen=100
+parm_model_dir=/Users/heyangdong/software/PARM/pre_trained_models/K562
+baseline=True
+lambda_motif=0.0
+lambda_syntax=0.0
+lambda_shape=0.0

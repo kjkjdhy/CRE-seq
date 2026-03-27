@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+src/creseq/__init__.py
+src/creseq/fitness.py
+src/creseq/generator_core.py
+src/creseq/motif.py
+src/creseq/score_adapter.py
+src/creseq/shape.py
+src/creseq/syntax.py
+src/creseq.egg-info/PKG-INFO
+src/creseq.egg-info/SOURCES.txt
+src/creseq.egg-info/dependency_links.txt
+src/creseq.egg-info/top_level.txt
+src/creseq/scripts/run_experiment.py
