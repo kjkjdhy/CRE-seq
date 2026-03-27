@@ -12,13 +12,11 @@ from creseq.score_adapter import ParmScorer
 
 N_RUNS = 50
 
-
-GENS = 80
+GENS = 100
 POP = 96
 LAMBDA_MOTIF = 0.3
 LAMBDA_SHAPE = 0.2
 LAMBDA_SYNTAX = 1.0
-
 
 PARM_MODEL_DIR = os.environ.get("PARM_MODEL_DIR")
 
@@ -29,38 +27,40 @@ FA_NAME = "final_best.fa"
 HEADER_RE = re.compile(r"fitness=([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)")
 
 
-def run_ga_once(seed: int, existing_dirs: set[str]) -> pathlib.Path:
-    
-    cmd = [
-    "python",
-    "scripts/run_ga.py",
-    "--outdir",
-    str(OUT_BASE / f"seed_{seed:03d}"),
-    "--n_gen",
-    str(GENS),
-    "--pop_size",
-    str(POP),
-    "--seed",
-    str(seed),
-]
+def run_ga_once(seed: int, existing_dirs: set[str], baseline: bool) -> pathlib.Path:
+    outdir = OUT_BASE / f"{'baseline' if baseline else 'penalty'}_seed_{seed:03d}"
 
-    print(f"\n=== Running GA with seed={seed} ===")
+    cmd = [
+        "python",
+        "scripts/run_ga.py",
+        "--outdir",
+        str(outdir),
+        "--n_gen",
+        str(GENS),
+        "--pop_size",
+        str(POP),
+        "--seed",
+        str(seed),
+        "--parm_model_dir",
+        PARM_MODEL_DIR,
+    ]
+
+    if baseline:
+        cmd.append("--baseline")
+    else:
+        cmd += [
+            "--lambda_motif", str(LAMBDA_MOTIF),
+            "--lambda_syntax", str(LAMBDA_SYNTAX),
+            "--lambda_shape", str(LAMBDA_SHAPE),
+        ]
+
+    print(f"\n=== Running {'baseline' if baseline else 'penalty'} GA with seed={seed} ===")
     subprocess.run(cmd, check=True)
 
-
-    current_dirs = {p.name for p in OUT_BASE.iterdir() if p.is_dir()}
-    new_dirs = current_dirs - existing_dirs
-    if len(new_dirs) != 1:
-        raise RuntimeError(
-            f"Expected exactly 1 new run directory, found {len(new_dirs)}: {new_dirs}"
-        )
-    run_id = next(iter(new_dirs))
-    print(f"seed={seed} -> new run_id={run_id}")
-    return OUT_BASE / run_id
+    return outdir
 
 
 def parse_final_best(run_dir: pathlib.Path) -> tuple[str, str, float]:
-    """从 run_dir/final_best.fa 里取出 (run_id, seq, fitness)。"""
     fa = run_dir / FA_NAME
     if not fa.exists():
         raise FileNotFoundError(f"{fa} not found")
@@ -70,10 +70,7 @@ def parse_final_best(run_dir: pathlib.Path) -> tuple[str, str, float]:
         seq = f.readline().strip().upper()
 
     m = HEADER_RE.search(header)
-    if m:
-        fitness = float(m.group(1))
-    else:
-        fitness = float("nan")
+    fitness = float(m.group(1)) if m else float("nan")
 
     return run_dir.name, seq, fitness
 
@@ -81,29 +78,35 @@ def parse_final_best(run_dir: pathlib.Path) -> tuple[str, str, float]:
 def main() -> None:
     OUT_BASE.mkdir(parents=True, exist_ok=True)
 
-
-    existing_dirs = {p.name for p in OUT_BASE.iterdir() if p.is_dir()}
-
     rows = []
 
     for i in range(1, N_RUNS + 1):
-        run_dir = run_ga_once(seed=i, existing_dirs=existing_dirs)
-        existing_dirs.add(run_dir.name)
+        # baseline
+        run_dir = run_ga_once(seed=i, existing_dirs=set(), baseline=True)
         run_id, seq, fit = parse_final_best(run_dir)
-        rows.append(
-            {
-                "run_id": run_id,
-                "seed": i,
-                "sequence": seq,
-                "fitness_ga": fit,
-            }
-        )
+        rows.append({
+            "type": "baseline",
+            "run_id": run_id,
+            "seed": i,
+            "sequence": seq,
+            "fitness_ga": fit,
+        })
 
-    df = pd.DataFrame(rows).sort_values("run_id")
+        # penalty
+        run_dir = run_ga_once(seed=i, existing_dirs=set(), baseline=False)
+        run_id, seq, fit = parse_final_best(run_dir)
+        rows.append({
+            "type": "penalty",
+            "run_id": run_id,
+            "seed": i,
+            "sequence": seq,
+            "fitness_ga": fit,
+        })
+
+    df = pd.DataFrame(rows).sort_values(["type", "run_id"])
     print(f"\nCollected {df.shape[0]} champion sequences from GA runs.")
 
-  #Scoring with PARM K562
-
+    # Scoring with PARM K562
     seqs = df["sequence"].astype(str).str.upper().tolist()
     Ls = {len(s) for s in seqs}
     if len(Ls) != 1:
